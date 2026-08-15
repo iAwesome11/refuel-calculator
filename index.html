@@ -148,17 +148,34 @@
     margin-top: 12px;
     padding-top: 12px;
     border-top: 1px solid var(--border);
-    font-size: 0.85rem;
-    color: var(--muted);
-    line-height: 1.6;
   }
-  .calc-content p {
-    margin: 0 0 6px;
+  .calc-table {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px 12px;
+  }
+  .calc-col-header {
+    font-size: 0.8rem;
+    font-weight: 600;
     color: var(--text);
   }
-  .calc-content p:last-child {
-    margin-bottom: 0;
+  .calc-row {
+    font-size: 0.75rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .calc-row.calc-final {
     font-weight: 600;
+    color: var(--text);
+  }
+  .calc-diff {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.5;
   }
   footer {
     margin-top: 16px;
@@ -398,14 +415,28 @@
     const lowerLabel = higherLabel === "A" ? "B" : "A";
     const higherKm = Math.max(resultA.km, resultB.km);
     const lowerKm = Math.min(resultA.km, resultB.km);
+    const spend = spendDollars.toFixed(2);
 
+    // Two columns (A/B), filled row-by-row so each step of the by-hand
+    // math lines up side by side, ending in the final km for each price.
+    // The difference is then worked out on its own row underneath.
     compareCalcContentEl.innerHTML = `
-      <p>Price A — $${spendDollars.toFixed(2)} ÷ $${(priceA / 100).toFixed(3)}/L = ${resultA.litres.toFixed(2)} L
-      → ${resultA.litres.toFixed(2)} L × (100 ÷ ${CONSUMPTION_L_PER_100KM}) = ${resultA.km.toFixed(1)} km</p>
-      <p>Price B — $${spendDollars.toFixed(2)} ÷ $${(priceB / 100).toFixed(3)}/L = ${resultB.litres.toFixed(2)} L
-      → ${resultB.litres.toFixed(2)} L × (100 ÷ ${CONSUMPTION_L_PER_100KM}) = ${resultB.km.toFixed(1)} km</p>
-      <p>Difference (higher ${higherLabel} − lower ${lowerLabel}) — ${higherKm.toFixed(1)} km − ${lowerKm.toFixed(1)} km
-      = ${diff.toFixed(1)} km → rounded to ~${Math.round(diff)} km</p>
+      <div class="calc-table">
+        <div class="calc-col-header">Price A</div>
+        <div class="calc-col-header">Price B</div>
+        <div class="calc-row">$${spend} ÷ $${(priceA / 100).toFixed(3)}/L</div>
+        <div class="calc-row">$${spend} ÷ $${(priceB / 100).toFixed(3)}/L</div>
+        <div class="calc-row">= ${resultA.litres.toFixed(2)} L</div>
+        <div class="calc-row">= ${resultB.litres.toFixed(2)} L</div>
+        <div class="calc-row">× (100 ÷ ${CONSUMPTION_L_PER_100KM})</div>
+        <div class="calc-row">× (100 ÷ ${CONSUMPTION_L_PER_100KM})</div>
+        <div class="calc-row calc-final">= ${resultA.km.toFixed(1)} km</div>
+        <div class="calc-row calc-final">= ${resultB.km.toFixed(1)} km</div>
+      </div>
+      <div class="calc-diff">
+        Difference (higher ${higherLabel} − lower ${lowerLabel}):<br>
+        ${higherKm.toFixed(1)} km − ${lowerKm.toFixed(1)} km = ${diff.toFixed(1)} km → rounded to ~${Math.round(diff)} km
+      </div>
     `;
   }
 
