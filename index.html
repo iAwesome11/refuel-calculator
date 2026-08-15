@@ -438,7 +438,7 @@
     const { litres, km } = kmForSpend(spendDollars, priceCents);
     litresEl.textContent = litres.toFixed(2);
     kmEl.textContent = `~${Math.round(km)}`;
-    tripCountEl.textContent = `~${Math.floor(km / HOME_TO_MELBOURNE_CBD_ROUND_TRIP_KM)}`;
+    tripCountEl.textContent = `~${(km / HOME_TO_MELBOURNE_CBD_ROUND_TRIP_KM).toFixed(1)}`;
     tripCardEl.hidden = false;
   }
 
