@@ -1,0 +1,224 @@
+<title>ReFuel Calculator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#f8fafc">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ReFuel">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #0f172a;
+    --muted: #64748b;
+    --accent: #0284c7;
+    --border: #e2e8f0;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  body {
+    display: flex;
+    justify-content: center;
+    padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+  }
+  main {
+    width: 100%;
+    max-width: 420px;
+  }
+  h1 {
+    font-size: 1.4rem;
+    margin: 0 0 4px;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin: 0 0 24px;
+    line-height: 1.4;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  label {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .field {
+    margin-bottom: 18px;
+  }
+  .input-wrap {
+    display: flex;
+    align-items: center;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0 12px;
+  }
+  .input-wrap span {
+    color: var(--muted);
+    font-size: 1rem;
+  }
+  input[type="number"],
+  input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-size: 1.1rem;
+    padding: 12px 8px;
+    outline: none;
+    -moz-appearance: textfield;
+  }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .results {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .result {
+    text-align: center;
+  }
+  .result .value {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .result .unit {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  footer {
+    margin-top: 16px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+</style>
+
+<main>
+  <h1>Fuel Cost → Distance</h1>
+  <p class="subtitle">
+    2020 Kia Cerato S (base model, hatch): 7.4 L/100km combined, 50 L tank
+  </p>
+
+  <div class="card">
+    <div class="field">
+      <label for="price">Fuel price (cents per litre)</label>
+      <div class="input-wrap">
+        <span>¢</span>
+        <input id="price" type="text" inputmode="numeric" autocomplete="off" placeholder="150.0">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="spend">Amount to spend (AUD)</label>
+      <div class="input-wrap">
+        <span>$</span>
+        <input id="spend" type="number" inputmode="decimal" min="0" step="1" placeholder="50.00">
+      </div>
+    </div>
+
+    <div class="results">
+      <div class="result">
+        <div class="value" id="litres">–</div>
+        <div class="unit">litres</div>
+      </div>
+      <div class="result">
+        <div class="value" id="km">–</div>
+        <div class="unit">km</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>Estimate only — real-world consumption varies.</footer>
+</main>
+
+<script>
+  const CONSUMPTION_L_PER_100KM = 7.4;
+
+  const priceEl = document.getElementById("price");
+  const spendEl = document.getElementById("spend");
+  const litresEl = document.getElementById("litres");
+  const kmEl = document.getElementById("km");
+
+  function calculate() {
+    const priceCents = parseFloat(priceEl.value);
+    const spendDollars = parseFloat(spendEl.value);
+
+    if (!(priceCents > 0) || !(spendDollars > 0)) {
+      litresEl.textContent = "–";
+      kmEl.textContent = "–";
+      return;
+    }
+
+    const pricePerLitre = priceCents / 100;
+    const litres = spendDollars / pricePerLitre;
+    const km = litres * (100 / CONSUMPTION_L_PER_100KM);
+
+    litresEl.textContent = litres.toFixed(2);
+    kmEl.textContent = `~${Math.round(km)}`;
+  }
+
+  // Fuel price is entered like a till/EFTPOS amount: digits fill in from
+  // the right and the field always reads as XXX.X, so there's no separate
+  // decimal key and no unformatted in-between state while typing. Once the
+  // XXX.X cap is hit, further digits are rejected — the user must delete
+  // (backspace or select-all) before entering a new value.
+  function attachMoneyMask(el, maxDigits, decimalPlaces) {
+    let digits = "";
+    const divisor = 10 ** decimalPlaces;
+
+    function render() {
+      el.value = digits === "" ? "" : (parseInt(digits, 10) / divisor).toFixed(decimalPlaces);
+    }
+
+    el.addEventListener("beforeinput", (event) => {
+      event.preventDefault();
+
+      const wholeValueSelected =
+        el.selectionStart === 0 && el.selectionEnd === el.value.length && el.value.length > 0;
+
+      if (event.inputType === "insertText" || event.inputType === "insertFromPaste" || event.inputType === "insertCompositionText") {
+        const typed = (event.data || "").replace(/\D/g, "");
+        if (!typed) return;
+        if (wholeValueSelected) digits = "";
+        digits = (digits + typed).slice(0, maxDigits);
+      } else if (event.inputType === "deleteContentBackward" || event.inputType === "deleteContentForward") {
+        digits = wholeValueSelected ? "" : digits.slice(0, -1);
+      } else {
+        return;
+      }
+
+      render();
+      calculate();
+    });
+  }
+
+  attachMoneyMask(priceEl, 4, 1); // hard cap at 999.9
+
+  spendEl.addEventListener("input", calculate);
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
+</script>
