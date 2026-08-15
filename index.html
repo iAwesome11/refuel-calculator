@@ -279,7 +279,7 @@
       </div>
     </div>
 
-    <div class="card trip-card">
+    <div class="card trip-card" id="tripCard" hidden>
       <div class="result">
         <div class="value" id="tripCount">–</div>
         <div class="unit">round trips, Home ↔ Melbourne CBD</div>
@@ -419,6 +419,7 @@
   const spendEl = document.getElementById("spend");
   const litresEl = document.getElementById("litres");
   const kmEl = document.getElementById("km");
+  const tripCardEl = document.getElementById("tripCard");
   const tripCountEl = document.getElementById("tripCount");
 
   const HOME_TO_MELBOURNE_CBD_ROUND_TRIP_KM = 90;
@@ -430,7 +431,7 @@
     if (!(priceCents > 0) || !(spendDollars > 0)) {
       litresEl.textContent = "–";
       kmEl.textContent = "–";
-      tripCountEl.textContent = "–";
+      tripCardEl.hidden = true;
       return;
     }
 
@@ -438,6 +439,7 @@
     litresEl.textContent = litres.toFixed(2);
     kmEl.textContent = `~${Math.round(km)}`;
     tripCountEl.textContent = `~${Math.floor(km / HOME_TO_MELBOURNE_CBD_ROUND_TRIP_KM)}`;
+    tripCardEl.hidden = false;
   }
 
   attachMoneyMask(priceEl, 4, 1, calculateRange); // hard cap at 999.9
