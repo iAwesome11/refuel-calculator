@@ -116,6 +116,26 @@
     font-size: 0.8rem;
     color: var(--muted);
   }
+  .trip-card {
+    margin-top: 16px;
+  }
+  .trip-map {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-top: 16px;
+  }
+  .trip-map-label {
+    font-size: 9px;
+    fill: var(--muted);
+    font-family: inherit;
+  }
+  .trip-map-distance {
+    font-size: 9px;
+    fill: var(--text);
+    font-weight: 600;
+    font-family: inherit;
+  }
   .calc-details {
     margin-top: 16px;
   }
@@ -259,6 +279,22 @@
       </div>
     </div>
 
+    <div class="card trip-card">
+      <div class="result">
+        <div class="value" id="tripCount">–</div>
+        <div class="unit">round trips, Home ↔ Melbourne CBD</div>
+      </div>
+
+      <svg class="trip-map" viewBox="0 0 300 90" role="img" aria-label="Route from Home to Melbourne CBD">
+        <line x1="34" y1="30" x2="266" y2="30" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 10"/>
+        <circle cx="34" cy="30" r="7" fill="var(--accent)"/>
+        <circle cx="266" cy="30" r="7" fill="var(--accent)"/>
+        <text x="34" y="58" text-anchor="middle" class="trip-map-label">Home</text>
+        <text x="266" y="58" text-anchor="middle" class="trip-map-label">Melbourne CBD</text>
+        <text x="150" y="18" text-anchor="middle" class="trip-map-distance">90 km round trip</text>
+      </svg>
+    </div>
+
     <footer>Estimate only — real-world consumption varies.</footer>
   </div>
 
@@ -383,6 +419,9 @@
   const spendEl = document.getElementById("spend");
   const litresEl = document.getElementById("litres");
   const kmEl = document.getElementById("km");
+  const tripCountEl = document.getElementById("tripCount");
+
+  const HOME_TO_MELBOURNE_CBD_ROUND_TRIP_KM = 90;
 
   function calculateRange() {
     const priceCents = parseFloat(priceEl.value);
@@ -391,12 +430,14 @@
     if (!(priceCents > 0) || !(spendDollars > 0)) {
       litresEl.textContent = "–";
       kmEl.textContent = "–";
+      tripCountEl.textContent = "–";
       return;
     }
 
     const { litres, km } = kmForSpend(spendDollars, priceCents);
     litresEl.textContent = litres.toFixed(2);
     kmEl.textContent = `~${Math.round(km)}`;
+    tripCountEl.textContent = `~${Math.floor(km / HOME_TO_MELBOURNE_CBD_ROUND_TRIP_KM)}`;
   }
 
   attachMoneyMask(priceEl, 4, 1, calculateRange); // hard cap at 999.9
