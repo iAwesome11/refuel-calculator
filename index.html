@@ -27,11 +27,17 @@
   body {
     display: flex;
     justify-content: center;
-    padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+    padding: 24px 16px calc(88px + env(safe-area-inset-bottom));
   }
   main {
     width: 100%;
     max-width: 420px;
+  }
+  .page {
+    display: none;
+  }
+  .page.active {
+    display: block;
   }
   h1 {
     font-size: 1.4rem;
@@ -95,6 +101,9 @@
     grid-template-columns: 1fr 1fr;
     gap: 12px;
   }
+  .results.single {
+    grid-template-columns: 1fr;
+  }
   .result {
     text-align: center;
   }
@@ -113,78 +122,165 @@
     color: var(--muted);
     font-size: 0.75rem;
   }
+  .tabbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .tabbar-inner {
+    display: flex;
+    width: 100%;
+    max-width: 420px;
+  }
+  .tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 0 8px;
+    background: none;
+    border: none;
+    font: inherit;
+    color: var(--muted);
+  }
+  .tab svg {
+    width: 22px;
+    height: 22px;
+  }
+  .tab span {
+    font-size: 0.7rem;
+  }
+  .tab.active {
+    color: var(--accent);
+  }
 </style>
 
 <main>
-  <h1>Fuel Cost → Distance</h1>
-  <p class="subtitle">
-    2020 Kia Cerato S (base model, hatch): 7.4 L/100km combined, 50 L tank
-  </p>
+  <div class="page active" id="page-range">
+    <h1>Fuel Cost → Distance</h1>
+    <p class="subtitle">
+      2020 Kia Cerato S (base model, hatch): 7.4 L/100km combined, 50 L tank
+    </p>
 
-  <div class="card">
-    <div class="field">
-      <label for="price">Fuel price (cents per litre)</label>
-      <div class="input-wrap">
-        <span>¢</span>
-        <input id="price" type="text" inputmode="numeric" autocomplete="off" placeholder="150.0">
+    <div class="card">
+      <div class="field">
+        <label for="price">Fuel price (cents per litre)</label>
+        <div class="input-wrap">
+          <span>¢</span>
+          <input id="price" type="text" inputmode="numeric" autocomplete="off" placeholder="150.0">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="spend">Amount to spend (AUD)</label>
+        <div class="input-wrap">
+          <span>$</span>
+          <input id="spend" type="number" inputmode="decimal" min="0" step="1" placeholder="50.00">
+        </div>
+      </div>
+
+      <div class="results">
+        <div class="result">
+          <div class="value" id="litres">–</div>
+          <div class="unit">litres</div>
+        </div>
+        <div class="result">
+          <div class="value" id="km">–</div>
+          <div class="unit">km</div>
+        </div>
       </div>
     </div>
 
-    <div class="field">
-      <label for="spend">Amount to spend (AUD)</label>
-      <div class="input-wrap">
-        <span>$</span>
-        <input id="spend" type="number" inputmode="decimal" min="0" step="1" placeholder="50.00">
-      </div>
-    </div>
-
-    <div class="results">
-      <div class="result">
-        <div class="value" id="litres">–</div>
-        <div class="unit">litres</div>
-      </div>
-      <div class="result">
-        <div class="value" id="km">–</div>
-        <div class="unit">km</div>
-      </div>
-    </div>
+    <footer>Estimate only — real-world consumption varies.</footer>
   </div>
 
-  <footer>Estimate only — real-world consumption varies.</footer>
+  <div class="page" id="page-compare">
+    <h1>Compare Fuel Prices</h1>
+    <p class="subtitle">
+      Same spend, two prices — see the difference in distance you'd get.
+    </p>
+
+    <div class="card">
+      <div class="field">
+        <label for="comparePriceA">Fuel price A (cents per litre)</label>
+        <div class="input-wrap">
+          <span>¢</span>
+          <input id="comparePriceA" type="text" inputmode="numeric" autocomplete="off" placeholder="150.0">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="compareSpend">Amount to spend (AUD)</label>
+        <div class="input-wrap">
+          <span>$</span>
+          <input id="compareSpend" type="number" inputmode="decimal" min="0" step="1" placeholder="50.00">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="comparePriceB">Fuel price B (cents per litre)</label>
+        <div class="input-wrap">
+          <span>¢</span>
+          <input id="comparePriceB" type="text" inputmode="numeric" autocomplete="off" placeholder="165.0">
+        </div>
+      </div>
+
+      <div class="results single">
+        <div class="result">
+          <div class="value" id="compareKm">–</div>
+          <div class="unit">km difference</div>
+        </div>
+      </div>
+    </div>
+
+    <footer>Estimate only — real-world consumption varies.</footer>
+  </div>
 </main>
+
+<nav class="tabbar">
+  <div class="tabbar-inner">
+    <button class="tab active" data-page="page-range" aria-label="Fuel range">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 12 16 8"/>
+      </svg>
+      <span>Range</span>
+    </button>
+    <button class="tab" data-page="page-compare" aria-label="Compare prices">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 3 4 7l4 4"/>
+        <path d="M4 7h16"/>
+        <path d="M16 21l4-4-4-4"/>
+        <path d="M20 17H4"/>
+      </svg>
+      <span>Compare</span>
+    </button>
+  </div>
+</nav>
 
 <script>
   const CONSUMPTION_L_PER_100KM = 7.4;
 
-  const priceEl = document.getElementById("price");
-  const spendEl = document.getElementById("spend");
-  const litresEl = document.getElementById("litres");
-  const kmEl = document.getElementById("km");
-
-  function calculate() {
-    const priceCents = parseFloat(priceEl.value);
-    const spendDollars = parseFloat(spendEl.value);
-
-    if (!(priceCents > 0) || !(spendDollars > 0)) {
-      litresEl.textContent = "–";
-      kmEl.textContent = "–";
-      return;
-    }
-
-    const pricePerLitre = priceCents / 100;
+  function kmForSpend(spendDollars, priceCentsPerLitre) {
+    const pricePerLitre = priceCentsPerLitre / 100;
     const litres = spendDollars / pricePerLitre;
     const km = litres * (100 / CONSUMPTION_L_PER_100KM);
-
-    litresEl.textContent = litres.toFixed(2);
-    kmEl.textContent = `~${Math.round(km)}`;
+    return { litres, km };
   }
 
-  // Fuel price is entered like a till/EFTPOS amount: digits fill in from
-  // the right and the field always reads as XXX.X, so there's no separate
-  // decimal key and no unformatted in-between state while typing. Once the
-  // XXX.X cap is hit, further digits are rejected — the user must delete
-  // (backspace or select-all) before entering a new value.
-  function attachMoneyMask(el, maxDigits, decimalPlaces) {
+  // Fuel price fields are entered like a till/EFTPOS amount: digits fill in
+  // from the right and the field always reads as XXX.X, so there's no
+  // separate decimal key and no unformatted in-between state while typing.
+  // Once the XXX.X cap is hit, further digits are rejected — the user must
+  // delete (backspace or select-all) before entering a new value.
+  function attachMoneyMask(el, maxDigits, decimalPlaces, onChange) {
     let digits = "";
     const divisor = 10 ** decimalPlaces;
 
@@ -210,13 +306,71 @@
       }
 
       render();
-      calculate();
+      onChange();
     });
   }
 
-  attachMoneyMask(priceEl, 4, 1); // hard cap at 999.9
+  // --- Range tab ---
+  const priceEl = document.getElementById("price");
+  const spendEl = document.getElementById("spend");
+  const litresEl = document.getElementById("litres");
+  const kmEl = document.getElementById("km");
 
-  spendEl.addEventListener("input", calculate);
+  function calculateRange() {
+    const priceCents = parseFloat(priceEl.value);
+    const spendDollars = parseFloat(spendEl.value);
+
+    if (!(priceCents > 0) || !(spendDollars > 0)) {
+      litresEl.textContent = "–";
+      kmEl.textContent = "–";
+      return;
+    }
+
+    const { litres, km } = kmForSpend(spendDollars, priceCents);
+    litresEl.textContent = litres.toFixed(2);
+    kmEl.textContent = `~${Math.round(km)}`;
+  }
+
+  attachMoneyMask(priceEl, 4, 1, calculateRange); // hard cap at 999.9
+  spendEl.addEventListener("input", calculateRange);
+
+  // --- Compare tab ---
+  const comparePriceAEl = document.getElementById("comparePriceA");
+  const comparePriceBEl = document.getElementById("comparePriceB");
+  const compareSpendEl = document.getElementById("compareSpend");
+  const compareKmEl = document.getElementById("compareKm");
+
+  function calculateCompare() {
+    const priceA = parseFloat(comparePriceAEl.value);
+    const priceB = parseFloat(comparePriceBEl.value);
+    const spendDollars = parseFloat(compareSpendEl.value);
+
+    if (!(priceA > 0) || !(priceB > 0) || !(spendDollars > 0)) {
+      compareKmEl.textContent = "–";
+      return;
+    }
+
+    const kmA = kmForSpend(spendDollars, priceA).km;
+    const kmB = kmForSpend(spendDollars, priceB).km;
+    const diff = Math.max(kmA, kmB) - Math.min(kmA, kmB);
+
+    compareKmEl.textContent = `~${Math.round(diff)}`;
+  }
+
+  attachMoneyMask(comparePriceAEl, 4, 1, calculateCompare);
+  attachMoneyMask(comparePriceBEl, 4, 1, calculateCompare);
+  compareSpendEl.addEventListener("input", calculateCompare);
+
+  // --- Tab navigation ---
+  const tabs = document.querySelectorAll(".tab");
+  const pages = document.querySelectorAll(".page");
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      tabs.forEach((t) => t.classList.toggle("active", t === tab));
+      pages.forEach((page) => page.classList.toggle("active", page.id === tab.dataset.page));
+    });
+  });
 
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(() => {});
