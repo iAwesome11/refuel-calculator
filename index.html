@@ -116,6 +116,50 @@
     font-size: 0.8rem;
     color: var(--muted);
   }
+  .calc-details {
+    margin-top: 16px;
+  }
+  .calc-details summary {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent);
+    list-style: none;
+  }
+  .calc-details summary::-webkit-details-marker {
+    display: none;
+  }
+  .calc-details summary::before {
+    content: "";
+    width: 0;
+    height: 0;
+    border-left: 5px solid var(--accent);
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    transition: transform 0.15s ease;
+  }
+  .calc-details[open] summary::before {
+    transform: rotate(90deg);
+  }
+  .calc-content {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .calc-content p {
+    margin: 0 0 6px;
+    color: var(--text);
+  }
+  .calc-content p:last-child {
+    margin-bottom: 0;
+    font-weight: 600;
+  }
   footer {
     margin-top: 16px;
     text-align: center;
@@ -238,6 +282,13 @@
           <div class="unit">km difference</div>
         </div>
       </div>
+
+      <details class="calc-details">
+        <summary>Show calculation</summary>
+        <div class="calc-content" id="compareCalcContent">
+          Enter both fuel prices and an amount to spend above to see the calculation.
+        </div>
+      </details>
     </div>
 
     <footer>Estimate only — real-world consumption varies.</footer>
@@ -339,6 +390,24 @@
   const comparePriceBEl = document.getElementById("comparePriceB");
   const compareSpendEl = document.getElementById("compareSpend");
   const compareKmEl = document.getElementById("compareKm");
+  const compareCalcContentEl = document.getElementById("compareCalcContent");
+  const CALC_PLACEHOLDER = "Enter both fuel prices and an amount to spend above to see the calculation.";
+
+  function renderCompareCalculation(spendDollars, priceA, priceB, resultA, resultB, diff) {
+    const higherLabel = resultA.km >= resultB.km ? "A" : "B";
+    const lowerLabel = higherLabel === "A" ? "B" : "A";
+    const higherKm = Math.max(resultA.km, resultB.km);
+    const lowerKm = Math.min(resultA.km, resultB.km);
+
+    compareCalcContentEl.innerHTML = `
+      <p>Price A — $${spendDollars.toFixed(2)} ÷ $${(priceA / 100).toFixed(3)}/L = ${resultA.litres.toFixed(2)} L
+      → ${resultA.litres.toFixed(2)} L × (100 ÷ ${CONSUMPTION_L_PER_100KM}) = ${resultA.km.toFixed(1)} km</p>
+      <p>Price B — $${spendDollars.toFixed(2)} ÷ $${(priceB / 100).toFixed(3)}/L = ${resultB.litres.toFixed(2)} L
+      → ${resultB.litres.toFixed(2)} L × (100 ÷ ${CONSUMPTION_L_PER_100KM}) = ${resultB.km.toFixed(1)} km</p>
+      <p>Difference (higher ${higherLabel} − lower ${lowerLabel}) — ${higherKm.toFixed(1)} km − ${lowerKm.toFixed(1)} km
+      = ${diff.toFixed(1)} km → rounded to ~${Math.round(diff)} km</p>
+    `;
+  }
 
   function calculateCompare() {
     const priceA = parseFloat(comparePriceAEl.value);
@@ -347,14 +416,16 @@
 
     if (!(priceA > 0) || !(priceB > 0) || !(spendDollars > 0)) {
       compareKmEl.textContent = "–";
+      compareCalcContentEl.textContent = CALC_PLACEHOLDER;
       return;
     }
 
-    const kmA = kmForSpend(spendDollars, priceA).km;
-    const kmB = kmForSpend(spendDollars, priceB).km;
-    const diff = Math.max(kmA, kmB) - Math.min(kmA, kmB);
+    const resultA = kmForSpend(spendDollars, priceA);
+    const resultB = kmForSpend(spendDollars, priceB);
+    const diff = Math.max(resultA.km, resultB.km) - Math.min(resultA.km, resultB.km);
 
     compareKmEl.textContent = `~${Math.round(diff)}`;
+    renderCompareCalculation(spendDollars, priceA, priceB, resultA, resultB, diff);
   }
 
   attachMoneyMask(comparePriceAEl, 4, 1, calculateCompare);
