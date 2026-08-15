@@ -1,13 +1,13 @@
 """
-Unit tests for fuel_cost_calculator.py
+Unit tests for refuel_calculator.py
 
-Run directly:      python3 test_fuel_cost_calculator.py
-Run via unittest:   python3 -m unittest test_fuel_cost_calculator.py -v
+Run directly:      python3 test_refuel_calculator.py
+Run via unittest:   python3 -m unittest test_refuel_calculator.py -v
 """
 
 import unittest
 
-from fuel_cost_calculator import (
+from refuel_calculator import (
     CERATO_CONSUMPTION_L_PER_100KM,
     CERATO_TANK_CAPACITY_L,
     calculate_km_for_spend,
